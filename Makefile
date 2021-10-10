@@ -5,7 +5,7 @@ NAME = es-5
 LDLIBS += `pkg-config --cflags --libs libpipewire-0.3`
 
 es-5: es-5.c
-	$(CXX) $(CXXFLAGS) es-5.c -o $(NAME) $(LDLIBS)
+	$(CXX) $(CXXFLAGS) es-5.c -o $(NAME) $(LDLIBS) -lm
 
 all: es-5
 

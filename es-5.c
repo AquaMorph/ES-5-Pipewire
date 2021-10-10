@@ -1,28 +1,55 @@
+#include <math.h>
 #include <spa/param/latency-utils.h>
-
 #include <pipewire/pipewire.h>
+
+#define ES_5_RANGE 128
+#define GATE_LOW_EDGE 0.1
 
 struct data;
 
 struct port {
-	struct data *data;
+  struct data *data;
+  double accumulator;
 };
 
 struct data {
   struct pw_main_loop *loop;
   struct pw_filter *filter;
-  struct port *in_port_one;
-  struct port *in_port_two;
-  struct port *in_port_three;
-  struct port *in_port_four;
-  struct port *in_port_five;
-  struct port *in_port_six;
-  struct port *in_port_seven;
-  struct port *in_port_eight;
+  struct port *in_ports[8];
   struct port *out_port;
 };
 
-static void on_process(void *userdata, struct spa_io_position *position) {}
+static void on_process(void *userdata, struct spa_io_position *position) {
+  struct data *data = userdata;
+  float *in, *out;
+  uint32_t i, n_samples = position->clock.duration;
+  struct port *out_port = data->out_port;
+  float signal = 0.5f;
+
+  // Read Inputs 1-7
+  out = pw_filter_get_dsp_buffer(data->out_port, n_samples);
+  for (int input = 0; input < 7; input++) {
+    in = pw_filter_get_dsp_buffer(data->in_ports[input], n_samples); 
+    if(*in > GATE_LOW_EDGE) {
+      signal += pow(2, input);
+    }
+  }
+
+  // Read Input 8
+  in = pw_filter_get_dsp_buffer(data->in_ports[7], n_samples); 
+  if(*in > GATE_LOW_EDGE) {
+    signal = -ES_5_RANGE+signal;
+  }
+
+  // Convert signal to expect output scale
+  signal = signal / ES_5_RANGE;
+
+  // Send to output
+  for (i = 0; i < n_samples; i++) {
+    out_port->accumulator = (double) signal;
+    *out++ = out_port->accumulator;
+  }
+}
 
 static void do_quit(void *userdata, int signal_number) {
   struct data *data = userdata;
@@ -70,14 +97,14 @@ int main(int argc, char *argv[]) {
 				     &filter_events,
 				     &data);
 
-  data.in_port_one = add_port("input_1", data);
-  data.in_port_two = add_port("input_2", data);
-  data.in_port_three = add_port("input_3", data);
-  data.in_port_four = add_port("input_4", data);
-  data.in_port_five = add_port("input_5", data);
-  data.in_port_six = add_port("input_6", data);
-  data.in_port_seven = add_port("input_7", data);
-  data.in_port_eight = add_port("input_8", data);
+  data.in_ports[0] = add_port("input_1", data);
+  data.in_ports[1] = add_port("input_2", data);
+  data.in_ports[2] = add_port("input_3", data);
+  data.in_ports[3] = add_port("input_4", data);
+  data.in_ports[4] = add_port("input_5", data);
+  data.in_ports[5] = add_port("input_6", data);
+  data.in_ports[6] = add_port("input_7", data);
+  data.in_ports[7] = add_port("input_8", data);
 
   data.out_port = pw_filter_add_port(data.filter,
 				     PW_DIRECTION_OUTPUT,
