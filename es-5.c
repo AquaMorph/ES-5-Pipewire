@@ -9,7 +9,6 @@ struct data;
 
 struct port {
   struct data *data;
-  double accumulator;
 };
 
 struct data {
@@ -23,7 +22,6 @@ static void on_process(void *userdata, struct spa_io_position *position) {
   struct data *data = userdata;
   float *in, *out;
   uint32_t i, n_samples = position->clock.duration;
-  struct port *out_port = data->out_port;
   float signal = 0.5f;
 
   // Read Inputs 1-7
@@ -31,7 +29,7 @@ static void on_process(void *userdata, struct spa_io_position *position) {
   for (int input = 0; input < 7; input++) {
     in = pw_filter_get_dsp_buffer(data->in_ports[input], n_samples); 
     if(*in > GATE_LOW_EDGE) {
-      signal += pow(2, input);
+      signal += powf(2, input);
     }
   }
 
@@ -46,8 +44,7 @@ static void on_process(void *userdata, struct spa_io_position *position) {
 
   // Send to output
   for (i = 0; i < n_samples; i++) {
-    out_port->accumulator = (double) signal;
-    *out++ = out_port->accumulator;
+    *out++ = signal;
   }
 }
 
