@@ -14,3 +14,6 @@ clean:
 
 run: all
 	./es-5
+
+debug: all
+	PIPEWIRE_DEBUG=5 ./$(NAME) 
