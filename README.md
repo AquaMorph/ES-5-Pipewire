@@ -8,20 +8,20 @@ A Pipewire client for the Expert Sleepers ES-5 eurorack module. Based upon [ES-5
  - GCC
  - Pipewire Development
  
- #### Fedora & RHEL
- ```sh
+#### Fedora & RHEL
+```sh
  sudo dnf install gcc pipewire-devel
  ```
- #### Debian & Ubuntu
+#### Debian & Ubuntu
  ```sh
  sudo apt install gcc pipewire-dev
  ```
- 
- ## Building
+
+## Build
  ```sh
  make
  ```
- ### Installing
+## Install
  ```sh
  make install
  ```
