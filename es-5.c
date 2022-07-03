@@ -26,18 +26,17 @@ static void on_process(void *userdata, struct spa_io_position *position) {
   
   // Read Inputs 1-7
   out = pw_filter_get_dsp_buffer(data->out_port, n_samples);
+  if (out == NULL) return;
   for (int input = 0; input < 7; input++) {
     in = pw_filter_get_dsp_buffer(data->in_ports[input], n_samples);
-    if (in == NULL || out == NULL) return;
-    if(*in > GATE_LOW_EDGE) {
+    if(in != NULL && *in > GATE_LOW_EDGE) {
       signal += powf(2, input);
     }
   }
 
   // Read Input 8
   in = pw_filter_get_dsp_buffer(data->in_ports[7], n_samples);
-  if (in == NULL || out == NULL) return; 
-  if(*in > GATE_LOW_EDGE) {
+  if(in != NULL && *in > GATE_LOW_EDGE) {
     signal = -ES_5_RANGE+signal;
   }
 
